@@ -8,6 +8,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * 作者：created by @author{ John } on 2019/5/8 0008下午 2:22
@@ -41,21 +43,26 @@ public class EasySocket {
     private Boolean isAutoConnect = true;
 
 
-    private long lasttime = 0;
-
-    private long maxHeartTime = 5000;
+    //是否开启心跳监测。开启心跳功能后，每隔一段间隔发送心跳包
     private Boolean needHeart = false;
+    //心跳包发送间隔
+    private long heartInterval = 10000;
+    //最长等待服务器回应时间
+    private long maxHeartTime = 5000;
 
+    //最后的发送时间
+    private long last_send_time = 0;
 
+    //最后的接收时间
+    private long last_rec_time = 0;
 
+    ExecutorService fixedThreadPool = Executors.newFixedThreadPool(5);
 
     public EasySocket(Builder builder) {
         this.mBuilder = builder;
         this.ip = builder.ip;
         this.port = builder.port;
         this.callback = builder.callback;
-
-
     }
 
 
@@ -64,16 +71,14 @@ public class EasySocket {
         disconnectSocketIfNecessary();
 
         if (Thread.currentThread()==Looper.getMainLooper().getThread()) {
-            new Thread(new Runnable() {
 
+            fixedThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
-                    // TODO Auto-generated method stub
                     realconnect();
                 }
+            });
 
-
-            }).start();
         }else {
             realconnect();
         }
@@ -211,8 +216,9 @@ public class EasySocket {
                             callback.onReceived(data);
                             Log.e(TAG, "onReceived"+":"+new String(data));
 
-
-                            lasttime = System.currentTimeMillis();
+                            if (needHeart){
+                                last_rec_time = System.currentTimeMillis();
+                            }
                         }
 
                     } catch (Exception e) {
@@ -241,21 +247,29 @@ public class EasySocket {
                 // TODO Auto-generated method stub
                 while (isAutoConnect) {
                     try {
-                        Thread.sleep(5000);
+                        Thread.sleep(1000);
                     } catch (InterruptedException e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
 
-                    try {
-                        //加入超时判断
-//                        if (needHeart) {
-//                            if((System.currentTimeMillis() - lasttime) > maxHeartTime){
-//                                isConnected = false;
-//                            }
-//                        }
 
-                        //sendHeart(0xff);
+                    try {
+
+
+                        if (needHeart) {
+
+                            if (System.currentTimeMillis() - last_send_time > heartInterval){
+                                sendHeart(0xff);
+                            }
+
+
+                            //若当前发送的时间比上次接收的时间新，而且间隔maxHearTime没有收到应答
+                            if(last_send_time > last_rec_time && System.currentTimeMillis() - last_send_time>maxHeartTime){
+                                isConnected = false;
+                            }
+                        }
+
 
                         if (isConnected) {
 
@@ -272,7 +286,6 @@ public class EasySocket {
                     } catch (Exception e) {
                         // TODO: handle exception
                         e.printStackTrace();
-                        callback.onError("读取数据异常");
                         Log.e(TAG, "onError");
                     }
 
@@ -311,13 +324,17 @@ public class EasySocket {
             os.write(msg);
             os.flush();
 
+            if (needHeart) {
+                last_send_time = System.currentTimeMillis();
+            }
+
+            if (mSocket.isInputShutdown()||mSocket.isOutputShutdown()) {
+                isConnected = false;
+            }
+
             callback.onSend();
             Log.e(TAG, "onSend");
 
-//            if (!needHeart) {
-//
-//                lasttime = System.currentTimeMillis();
-//            }
         } catch (Exception e) {
             // TODO: handle exception
             e.printStackTrace();
@@ -336,10 +353,16 @@ public class EasySocket {
         try {
             os.write(i);
             os.flush();
+            Log.e(TAG, "send Heart");
+
+            if (needHeart) {
+                last_send_time = System.currentTimeMillis();
+            }
 
             if (mSocket.isInputShutdown()||mSocket.isOutputShutdown()) {
                 isConnected = false;
             }
+
         } catch (Exception e) {
             // TODO: handle exception
             Log.e(TAG, "sendHeart fail");

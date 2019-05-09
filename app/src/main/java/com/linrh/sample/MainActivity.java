@@ -43,7 +43,7 @@ public class MainActivity extends Activity {
             public void run() {
                 EasySocket.Builder builder = new EasySocket.Builder();
                  socket = builder.setIp("10.10.201.52")
-                        .setPort(30000).setNeedHeart(false).setMaxHeartTime(5000)
+                        .setPort(30000).setNeedHeart(true).setMaxHeartTime(5000)
                         .setCallback(new Callback() {
                     @Override
                     public void onConnected() {
@@ -79,14 +79,18 @@ public class MainActivity extends Activity {
 
                 socket.connect();
 
-
-
             }
         }).start();
 
 
     }
 
+
+    @Override
+    protected void onStop() {
+        socket.disconnect();
+        super.onStop();
+    }
 
     private void show(String text)
     {
