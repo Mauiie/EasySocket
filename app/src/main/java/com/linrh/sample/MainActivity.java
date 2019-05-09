@@ -33,20 +33,17 @@ public class MainActivity extends Activity {
         mButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                socket.send((mEditText.getText().toString()+"\n").getBytes());
+                socket.send((mEditText.getText().toString() + "\n").getBytes());
             }
         });
 
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                 EasySocket.Builder builder = new EasySocket.Builder();
-                 socket = builder.setIp("10.10.201.52")
-                        .setPort(30000)
-                         .setNeedHeart(true)
-                         .setMaxHeartTime(5000)
-                        .setCallback(new Callback() {
+        EasySocket.Builder builder = new EasySocket.Builder();
+        socket = builder.setIp("10.10.201.52")
+                .setPort(30000)
+                .setNeedHeart(true)
+                .setMaxHeartTime(5000)
+                .setCallback(new Callback() {
                     @Override
                     public void onConnected() {
 
@@ -79,10 +76,7 @@ public class MainActivity extends Activity {
                     }
                 }).build();
 
-                socket.connect();
-
-            }
-        }).start();
+        socket.connect();
 
 
     }
@@ -94,13 +88,12 @@ public class MainActivity extends Activity {
         super.onStop();
     }
 
-    private void show(String text)
-    {
-        if (sb.length()>3000){
+    private void show(String text) {
+        if (sb.length() > 3000) {
             sb.setLength(0);
         }
 
-        sb.insert(0,text);
+        sb.insert(0, text);
         tv.post(new Runnable() {
             @Override
             public void run() {
