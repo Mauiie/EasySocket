@@ -41,8 +41,8 @@ public class MainActivity extends Activity {
         EasySocket.Builder builder = new EasySocket.Builder();
         socket = builder.setIp("10.10.201.52")
                 .setPort(30000)
-                .setNeedHeart(true)
-                .setMaxHeartTime(5000)
+                .setNeedHeart(true)  //默认为false
+                .setMaxHeartTime(5000) //默认为5000
                 .setCallback(new Callback() {
                     @Override
                     public void onConnected() {
