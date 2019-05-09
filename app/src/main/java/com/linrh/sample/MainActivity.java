@@ -41,9 +41,11 @@ public class MainActivity extends Activity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                EasySocket.Builder builder = new EasySocket.Builder();
+                 EasySocket.Builder builder = new EasySocket.Builder();
                  socket = builder.setIp("10.10.201.52")
-                        .setPort(30000).setNeedHeart(true).setMaxHeartTime(5000)
+                        .setPort(30000)
+                         .setNeedHeart(true)
+                         .setMaxHeartTime(5000)
                         .setCallback(new Callback() {
                     @Override
                     public void onConnected() {

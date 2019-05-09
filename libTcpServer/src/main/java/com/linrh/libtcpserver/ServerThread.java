@@ -52,7 +52,7 @@ public class ServerThread implements Runnable{
                     }catch (Exception e){
                         e.printStackTrace();
                         System.out.println("socket write error.");
-                        socket.close();
+                        //socket.close();
 
                     }
 
