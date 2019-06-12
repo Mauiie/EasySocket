@@ -27,7 +27,7 @@ Gradle
 ```java
 
 	dependencies {
-	        implementation 'com.github.ruihanL:EasySocket:1.0'
+	        implementation 'com.github.ruihanL:EasySocket:1.1'
 	}
 
 
