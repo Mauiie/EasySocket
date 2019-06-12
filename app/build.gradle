@@ -25,6 +25,9 @@ dependencies {
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support:multidex:1.0.3'
     api project(':easysocket')
+
+    implementation 'com.jakewharton:butterknife:8.5.0'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.4.0'
 }
 
 

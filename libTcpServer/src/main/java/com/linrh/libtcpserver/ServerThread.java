@@ -1,11 +1,5 @@
 package com.linrh.libtcpserver;
 
-/**
- * 作者：created by @author{ John } on 2019/5/8 0008下午 3:03
- * 描述：
- * 修改备注：
- */
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -93,9 +87,9 @@ public class ServerThread implements Runnable{
     private void writeString(String string,OutputStream os) throws Exception
     {
         //try {
-            os.write(("["+num+"] "+string+"\n").getBytes("utf-8"));
+        os.write(("["+num+"] "+string+"\n").getBytes("utf-8"));
         //} catch (Exception e) {
-            // TODO: handle exception
+        // TODO: handle exception
         //    System.out.println("socket write error.");
         //    e.printStackTrace();
         //}

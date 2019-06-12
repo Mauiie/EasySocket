@@ -5,10 +5,81 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".sample.MainActivity">
+    tools:context=".MainActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/et_ip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textPersonName"
+            android:hint="ip"
+            android:text="10.10.201.52" />
+
+        <EditText
+            android:id="@+id/et_port"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:hint="port"
+            android:text="3000" />
+
+        <Button
+            android:id="@+id/btn_connect"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="连接" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <CheckBox
+            android:id="@+id/cb_needheart"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="开启心跳" />
+
+        <EditText
+            android:id="@+id/et_heartpackage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint="心跳包0x"
+            android:text="0A"
+            android:inputType="textPersonName" />
+
+        <EditText
+            android:id="@+id/et_sendhearttime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint="发心跳间隔"
+            android:text="10000"
+            android:inputType="number" />
+
+        <EditText
+            android:id="@+id/et_recsevertimeout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint="收心跳间隔"
+            android:text="5000"
+            android:inputType="number" />
+    </LinearLayout>
 
     <TextView
-        android:id="@+id/tv"
+        android:id="@+id/tv_rec"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1"
@@ -20,7 +91,7 @@
         android:orientation="horizontal">
 
         <EditText
-            android:id="@+id/editText"
+            android:id="@+id/et_send"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -29,7 +100,7 @@
             android:text="Name" />
 
         <Button
-            android:id="@+id/button"
+            android:id="@+id/btn_send"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"

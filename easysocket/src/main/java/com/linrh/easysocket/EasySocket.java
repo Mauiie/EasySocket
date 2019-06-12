@@ -43,12 +43,29 @@ public class EasySocket {
     private Boolean isAutoConnect = true;
 
 
-    //是否开启心跳监测。开启心跳功能后，每隔一段间隔发送心跳包
-    private Boolean needHeart = false;
-    //心跳包发送间隔
-    private long heartInterval = 10000;
-    //最长等待服务器回应时间
-    private long maxHeartTime = 5000;
+    /**
+     * 是否开启心跳监测
+     * 开启心跳功能后，每隔一段间隔{@link EasySocket.heartInterval}发送心跳包{@link EasySocket.heartPackage}。
+     * 同时检测等待服务器返回应答的时间间隔是否超过最大等待时间{@link EasySocket.maxSeverResponseHeartOutTime}。
+     * 如果超时，将会重连。
+     */
+    private Boolean needHeart;
+
+    /**
+     *  心跳包发送间隔
+     */
+    private long heartInterval;
+
+    /**
+     * 最长等待服务器回应时间。
+     * 此超时时间应该比心跳包发送间隔短{@link EasySocket.heartInterval}
+     */
+    private long maxSeverResponseHeartOutTime;
+
+    /**
+     * 心跳包内容
+     */
+    private byte[] heartPackage;
 
     //最后的发送时间
     private long last_send_time = 0;
@@ -63,6 +80,10 @@ public class EasySocket {
         this.ip = builder.ip;
         this.port = builder.port;
         this.callback = builder.callback;
+        this.needHeart = builder.needHeart;
+        this.maxSeverResponseHeartOutTime = builder.maxSeverResponseHeartOutTime;
+        this.heartInterval = builder.heartInterval;
+        this.heartPackage = builder.heartPackage;
     }
 
 
@@ -256,16 +277,20 @@ public class EasySocket {
 
                     try {
 
-
                         if (needHeart) {
-
+                            /**
+                             * 当前时间距离上次发送时间（任意发送）的间隔大于最大心跳间隔时，发送心跳。
+                             */
                             if (System.currentTimeMillis() - last_send_time > heartInterval){
-                                sendHeart(0xff);
+                                sendHeart(heartPackage);
                             }
-
-
                             //若当前发送的时间比上次接收的时间新，而且间隔maxHearTime没有收到应答
-                            if(last_send_time > last_rec_time && System.currentTimeMillis() - last_send_time>maxHeartTime){
+                            /**
+                             * 此处判断是否满足重连条件：
+                             * 1、发送时间是否比接收时间晚
+                             * 2、当前时间距离上次发送间隔超过最大等待时间
+                             */
+                            if(last_send_time > last_rec_time && System.currentTimeMillis() - last_send_time > maxSeverResponseHeartOutTime){
                                 isConnected = false;
                             }
                         }
@@ -304,14 +329,13 @@ public class EasySocket {
     {
 
         if (Thread.currentThread()==Looper.getMainLooper().getThread()) {
-            new Thread(new Runnable() {
-
+            fixedThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
-                    // TODO Auto-generated method stub
                     realsend(msg);
                 }
-            }).start();
+            });
+
         }else {
             realsend(msg);
         }
@@ -348,7 +372,7 @@ public class EasySocket {
      * 发送心跳包
      * @param i
      */
-    private void sendHeart(int i)
+    private void sendHeart(byte[] i)
     {
         try {
             os.write(i);
@@ -362,6 +386,8 @@ public class EasySocket {
             if (mSocket.isInputShutdown()||mSocket.isOutputShutdown()) {
                 isConnected = false;
             }
+
+            callback.onSendHeart();
 
         } catch (Exception e) {
             // TODO: handle exception
@@ -380,8 +406,32 @@ public class EasySocket {
         private int port;
         private Callback callback;
 
-        private long maxHeartTime = 5000;
+        /**
+         * 是否开启心跳监测
+         * 开启心跳功能后，每隔一段间隔{@link heartInterval}发送心跳包{@link heartPackage}。
+         * 同时检测等待服务器返回应答的时间间隔是否超过最大等待时间{@link maxSeverResponseHeartOutTime}。
+         * 如果超时，将会重连。
+         */
         private Boolean needHeart = false;
+
+        /**
+         *  心跳包发送间隔
+         */
+        private long heartInterval = 10000;
+
+        /**
+         * 最长等待服务器回应时间。
+         * 此超时时间应该比心跳包发送间隔短{@link heartInterval}
+         */
+        private long maxSeverResponseHeartOutTime = 5000;
+
+        /**
+         * 心跳包内容
+         */
+        private byte[] heartPackage = new byte[]{0xA};
+
+
+
 
         public String getIp() {
             return ip;
@@ -410,14 +460,6 @@ public class EasySocket {
             return this;
         }
 
-        public long getMaxHeartTime() {
-            return maxHeartTime;
-        }
-
-        public Builder setMaxHeartTime(long maxHeartTime) {
-            this.maxHeartTime = maxHeartTime;
-            return this;
-        }
 
         public Boolean getNeedHeart() {
             return needHeart;
@@ -428,17 +470,64 @@ public class EasySocket {
             return this;
         }
 
+        public long getHeartInterval() {
+            return heartInterval;
+        }
+
+        public Builder setHeartInterval(long heartInterval) {
+            this.heartInterval = heartInterval;
+            return this;
+        }
+
+
+        public long getMaxSeverResponseHeartOutTime() {
+            return maxSeverResponseHeartOutTime;
+        }
+
+        public Builder setMaxSeverResponseHeartOutTime(long maxSeverResponseHeartOutTime) {
+            this.maxSeverResponseHeartOutTime = maxSeverResponseHeartOutTime;
+            return this;
+        }
+
+        public byte[] getHeartPackage() {
+            return heartPackage;
+        }
+
+        public Builder setHeartPackage(byte[] heartPackage) {
+            this.heartPackage = heartPackage;
+            return this;
+        }
+
         public EasySocket build()
         {
 
-            if (this.ip == null) {
-                throw new IllegalStateException("ip == null");
-            } else if (this.port == 0) {
-                throw new IllegalStateException("port == 0");
-            } else {
-                return new EasySocket(this);
+            if (this.ip == null||this.ip.isEmpty()) {
+                throw new IllegalStateException("ip is invalid");
             }
+
+            if (this.port == 0 || this.port>65535) {
+                throw new IllegalStateException("port is invalid");
+            }
+
+            if (needHeart){
+                if (maxSeverResponseHeartOutTime >= heartInterval){
+                    throw new IllegalStateException("maxSeverResponseHeartOutTime must be less than heartInterval");
+                }
+
+                if (maxSeverResponseHeartOutTime < 2000){
+                    throw new IllegalStateException("maxSeverResponseHeartOutTime must >= 2000");
+                }
+
+                if (heartPackage==null || heartPackage.length<1){
+                    throw new IllegalStateException("heartPackage can not be null or empty.");
+                }
+            }
+
+            return new EasySocket(this);
+
         }
+
+
     }
 
 
