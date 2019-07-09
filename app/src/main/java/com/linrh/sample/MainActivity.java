@@ -94,7 +94,9 @@ public class MainActivity extends Activity {
                 changeState();
                 break;
             case R.id.btn_send:
-                socket.send((etSend.getText().toString() + "\n").getBytes());
+                //socket.send((etSend.getText().toString() + "\n").getBytes());
+                socket.send((etSend.getText().toString()).getBytes());
+
                 break;
         }
     }

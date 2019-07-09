@@ -1,9 +1,11 @@
 package com.linrh.libtcpserver;
 
 import java.io.BufferedReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.nio.Buffer;
 
 
 public class ServerThread implements Runnable{
@@ -11,6 +13,7 @@ public class ServerThread implements Runnable{
     BufferedReader br = null;
     int num = 0;
 
+    InputStream is = null;
     OutputStream os = null;
 
     public ServerThread(Socket socket,int n)
@@ -18,7 +21,8 @@ public class ServerThread implements Runnable{
         s = socket;
         num = n;
         try {
-            br = new BufferedReader(new InputStreamReader(s.getInputStream(),"utf-8"));
+            is = s.getInputStream();
+            //br = new BufferedReader(new InputStreamReader(s.getInputStream(),"utf-8"));
             os = s.getOutputStream();
 
         } catch (Exception e) {
@@ -62,10 +66,30 @@ public class ServerThread implements Runnable{
     }
 
 
+//    private String readFromClient()
+//    {
+//        try {
+//            return br.readLine();
+//        } catch (Exception e) {
+//            // TODO: handle exception
+//            SimpleServer.sockets.remove(s);
+//        }
+//        return null;
+//    }
+
+    private byte buffer[]= new byte[1024];
+
     private String readFromClient()
     {
         try {
-            return br.readLine();
+            int readLen = 0;
+            readLen = is.read(buffer);
+
+            if (readLen>0) {
+                byte[] data = new byte[readLen];
+                System.arraycopy(buffer, 0, data, 0, readLen);
+                return new String(data);
+            }
         } catch (Exception e) {
             // TODO: handle exception
             SimpleServer.sockets.remove(s);
@@ -84,7 +108,7 @@ public class ServerThread implements Runnable{
         }
     }
 
-    private void writeString(String string,OutputStream os) throws Exception
+    private void writeString(String string, OutputStream os) throws Exception
     {
         //try {
         os.write(("["+num+"] "+string+"\n").getBytes("utf-8"));
